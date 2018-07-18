@@ -39,16 +39,16 @@ Your task is to create a re-usable pipeline that can be used to copy data from a
 We will invoke your pipeline with e.g.:
 
 ```
-./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2016-02-07.csv --sink mysql://root:password@mysql/external/npi
-./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2016-03-13.csv --sink mysql://root:password@mysql/external/npi
+./pipeline.py --source-url https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2016-02-07.csv --sink-user root --sink-password password --sink-host mysql --sink-database external --sink-table npi
+./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2016-03-13.csv --sink-user root --sink-password password --sink-host mysql --sink-database external --sink-table npi
 # ...
-./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-01-07.csv --sink mysql://root:password@mysql/external/npi
-./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-02-13.csv --sink mysql://root:password@mysql/external/npi
+./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-01-07.csv --sink-user root --sink-password password --sink-host mysql --sink-database external --sink-table npi
+./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-02-13.csv --sink-user root --sink-password password --sink-host mysql --sink-database external --sink-table npi
 ```
 
 At the end, we expect the data to be in an `npi` table in the `external` database in the `mysql` host/container authenticated with `root`/`password`.
 
-However, ideally we'd also be able to run it with `./pipeline.py --source https://www.example.org/some/other/dataset.csv --sink mysql://ben:hunter2@mysql/external/other_dataset` and import into `external.other_dataset` without many changes. That kind of re-usable code is what we're trying to create in the Data Integration team.
+However, ideally we'd also be able to run it with `./pipeline.py --source-url https://www.example.org/some/other/dataset.csv ... --sink-table other_dataset` and import into `external.other_dataset` without many changes. That kind of re-usable code is what we're trying to create in the Data Integration team.
 
 We're looking for well architected, object-oriented, and testable code.
 
