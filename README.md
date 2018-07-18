@@ -34,7 +34,7 @@ https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-01-07.cs
 https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-02-13.csv
 ```
 
-Your task is to create a re-usable pipeline that can be used to copy CSV data from a HTTP URL into a MySQL database. This should be a _generic_ pipeline that could be re-used for multiple datasets, not just this NPI CSV.
+Your task is to create a re-usable pipeline that can be used to append CSV data from a HTTP URL into a MySQL database. This should be a _generic_ pipeline that could be re-used for multiple datasets, not just this NPI CSV. Your script should create the table if it doesn't exist, but don't worry about guessing the right type for the columns. For this exercise simply making everything VARCHAR or TEXT columns would be fine. You can expect any files used with this tool to have headers with the column names.
 
 We will invoke your pipeline with e.g.:
 
@@ -46,7 +46,7 @@ We will invoke your pipeline with e.g.:
 ./pipeline.py --source https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-02-13.csv --sink-user root --sink-password password --sink-host mysql --sink-database external --sink-table npi
 ```
 
-At the end, we expect the data to be in an `npi` table in the `external` database in the `mysql` host/container authenticated with `root`/`password`.
+At the end, we expect the data from all of the invocations to be in an `npi` table in the `external` database in the `mysql` host/container authenticated with `root`/`password`.
 
 However, ideally we'd also be able to run it with `./pipeline.py --source-url https://www.example.org/some/other/dataset.csv ... --sink-table other_dataset` and import into `external.other_dataset` without many changes. That kind of re-usable code is what we're trying to create in the Data Integration team.
 
