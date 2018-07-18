@@ -34,7 +34,7 @@ https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-01-07.cs
 https://s3.amazonaws.com/dox-hiring-samples/npi-samples/npi-sample-2018-02-13.csv
 ```
 
-Your task is to create a re-usable pipeline that can be used to copy data from a HTTP URL into a MySQL database. This should be a _generic_ pipeline that could be re-used for multiple datasets, not just this NPI CSV.
+Your task is to create a re-usable pipeline that can be used to copy CSV data from a HTTP URL into a MySQL database. This should be a _generic_ pipeline that could be re-used for multiple datasets, not just this NPI CSV.
 
 We will invoke your pipeline with e.g.:
 
