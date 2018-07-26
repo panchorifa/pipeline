@@ -1,0 +1,8 @@
+#Dev and build packages
+
+# Testing
+pytest==3.6.3
+pytest-cov==2.5.1
+pytest-instafail==0.4.0
+
+tox==3.1.2
