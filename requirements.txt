@@ -1,1 +1,2 @@
 # Requirements for the package
+mysql-connector==2.1.6

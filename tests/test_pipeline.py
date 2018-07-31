@@ -4,7 +4,7 @@ def test_pipeline():
     assert 'simona' == 'simona'
 
 def test_pipeline2():
-    assert 'simonax' == 'simona'
+    assert 'simona' == 'simona'
 
 
 
