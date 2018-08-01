@@ -14,7 +14,7 @@ services:
     environment:
       POSTGRES_PASSWORD: postgres
   test:
-    build: .
+    build: tests/.
     volumes:
       - ./libs:/usr/app/libs
       - ./tests:/usr/app/tests

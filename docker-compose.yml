@@ -2,7 +2,7 @@ version: "3"
 services:
   pipeline:
     build: .
-    image: doximity/python-engineer-data:latest
+    image: pipeline:latest
     depends_on:
       - mysql
   mysql:
@@ -13,3 +13,13 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-ppassword", "--silent"]
       interval: 5s
+  test:
+    build: .
+    volumes:
+      - ./libs:/usr/app/libs
+      - ./tests:/usr/app/tests
+    depends_on:
+      - pipeline
+    environment:
+      TEST_COUCH_URL: http://${COUCH_ADMIN}:${COUCH_PASS}@couch:5984
+      TEST_PG_URL: postgres://postgres:${PG_PASS}@postgres:5432
