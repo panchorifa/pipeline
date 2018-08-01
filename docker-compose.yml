@@ -13,13 +13,15 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-ppassword", "--silent"]
       interval: 5s
-  test:
-    build: .
+  tests:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
     volumes:
-      - ./libs:/usr/app/libs
+      - ./lib:/usr/app/lib
       - ./tests:/usr/app/tests
     depends_on:
-      - pipeline
-    environment:
-      TEST_COUCH_URL: http://${COUCH_ADMIN}:${COUCH_PASS}@couch:5984
-      TEST_PG_URL: postgres://postgres:${PG_PASS}@postgres:5432
+      - mysql
+    # environment:
+    #   TEST_COUCH_URL: http://${COUCH_ADMIN}:${COUCH_PASS}@couch:5984
+    #   TEST_PG_URL: postgres://postgres:${PG_PASS}@postgres:5432
