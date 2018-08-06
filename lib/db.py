@@ -36,15 +36,16 @@ class Cursor:
                 self.cur.execute('drop table if exists {}'.format(ref_name))
             self.cur.execute('drop table if exists {}'.format(name))
 
-    def upsert_table(self, table_name, field_names, pk_idx=None, pk_type=None):
+    def upsert_table(self, source, table_name, field_names, pk_idx=None, pk_type=None):
         existing_table = self.latest_schema().tables.get(table_name)
-        if(existing_table):
-            self.cur.execute(ddl.alter_table(existing_table, field_names))
-        else:
+        if(not existing_table):
             pk = model.Field(field_names[pk_idx], pk_type) if pk_idx != None else None
             self.cur.execute(ddl.create_table_dumps(table_name))
             self.cur.execute(ddl.create_table(table_name, field_names, pk))
             self.cur.execute(ddl.create_table_history(table_name, field_names, pk))
+            self.cur.execute(ddl.start_dump(source, table_name))
+        else:
+            self.cur.execute(ddl.alter_table(existing_table, field_names))
 
     def upsert_record(self, table_name, values):
         table = self.latest_schema().tables.get(table_name)
@@ -53,9 +54,14 @@ class Cursor:
             print(sql)
             self.cur.execute(sql)
 
-    def rows(self, table_name):
-        self.cur.execute('select * from {}'.format(table_name))
-        return self.cur.fetchall()
+    def rows(self, table_name, field_names):
+        fields = ', '.join(field_names)
+        sql = 'SELECT {} FROM {}'.format(fields, table_name)
+        print(sql)
+        self.cur.execute(sql)
+        x = [x for x in self.cur.fetchall()]
+        print(x)
+        return x
 
     def execute(self, cmd):
         return self.cur.execute(cmd)

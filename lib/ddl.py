@@ -13,14 +13,27 @@ def dump_table_name(name):
 def create_table_dumps(table_name):
     fields = ('id INT not null auto_increment primary key, '
               'source VARCHAR(255) not null, '
+              'table_name VARCHAR(255) not null, '
               "status ENUM('started', 'completed', 'failed'), "
-              'unique key(source)')
-    return 'CREATE TABLE {}({})'.format(dump_table_name(table_name), fields)
+              'created_at TIMESTAMP NOT NULL DEFAULT NOW(), '
+              'updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE now(), '
+              'UNIQUE KEY(source, table_name)')
+    sql = 'CREATE TABLE {}({})'.format(dump_table_name(table_name), fields)
+    print(sql)
+    return sql
+
+def start_dump(source, table_name):
+    values = ', '.join(["'{}'".format(x) for x in [source, table_name, 'started']])
+    sql = 'INSERT INTO {}(source, table_name, status) values({})'.format(dump_table_name(table_name), values)
+    print(sql)
+    return sql
 
 def default_fields(table_name, dump_table_name):
     return ', '.join([
         'dump_id int not null',
         'line_id int not null',
+        # 'created_at TIMESTAMP NOT NULL DEFAULT NOW(), ',
+        # 'updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE now(), ',
         'FOREIGN KEY fk_{}_dump(dump_id) REFERENCES {}(id) ON DELETE CASCADE'.format(table_name, dump_table_name)
     ])
 
@@ -47,7 +60,6 @@ def alter_table(table, latest_fields):
     return None
 
 def insert_record(table, values):
-    print(', '.join(['{}'.format(x) for x in values]))
     values = ', '.join(["'{}'".format(x) for x in values])
     field_names = ', '.join([col for col in table.fields.keys()])
     return 'INSERT INTO {} ({})\nVALUES({})'.format(table.name, field_names, values)
