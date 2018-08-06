@@ -20,6 +20,7 @@ services:
     volumes:
       - ./lib:/usr/app/lib
       - ./tests:/usr/app/tests
+      - ./samples:/usr/app/samples
     depends_on:
       - mysql
     # environment:

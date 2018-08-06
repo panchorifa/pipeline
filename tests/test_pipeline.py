@@ -46,11 +46,17 @@ def csv_entries(source):
 def test_schema(cur):
     # assert cur.table_fields().keys() == {}
     assert len(cur.table_names()) == 0
-    fields=['nip','aaa','bbb']
-    schema = cur.upsert_table('simon', fields, pk_idx=0, pk_type='int11')
+    field_names=['nip','aaa','bbb']
+    schema = cur.upsert_table('simon', field_names, pk_idx=0, pk_type='mediumint')
     assert len(cur.table_names()) == 1
     assert cur.table_names()[0] == 'simon'
-    assert cur.table_fields('simon').keys() == ['nip','aaa','bbb']
+    fields = cur.table_fields('simon')
+    assert fields['aaa'].name == 'aaa'
+    assert fields['aaa'].type == 'varchar(255)'
+    assert fields['bbb'].name == 'bbb'
+    assert fields['bbb'].type == 'varchar(255)'
+    assert fields['nip'].name == 'nip'
+    assert fields['nip'].type == 'int11'
     # assert len(schema.tables.keys()) == 1
     # table = schema.tables['simon']
     # assert len(table.fields.keys()) == 3

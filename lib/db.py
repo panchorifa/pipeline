@@ -44,8 +44,10 @@ class Cursor:
             self.cur.execute('drop table if exists {}'.format(name))
 
     def upsert_table(self, table_name, field_names, pk_idx=None, pk_type=None):
-        pk = Field(field_names[pk_idx], pk_type) if pk_idx else None
-        self.cur.execute(ddl.create_table(table_name, field_names, pk))
+        pk = Field(field_names[pk_idx], pk_type) if pk_idx != None else None
+        sql = ddl.create_table(table_name, field_names, pk)
+        print(sql)
+        self.cur.execute(ddl)
 
     def execute(self, cmd):
         return self.cur.execute(cmd)
