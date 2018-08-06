@@ -17,15 +17,24 @@ def create_table_dumps(table_name):
               'unique key(source)')
     return 'CREATE TABLE {}({})'.format(dump_table_name(table_name), fields)
 
-def create_table(table_name, field_names, pk):
-    pk_field = 'PRIMARY KEY({})'.format(pk.name) if pk else ''
-    default_fields = ','.join([
+def default_fields(table_name, dump_table_name):
+    return ', '.join([
         'dump_id int not null',
         'line_id int not null',
-        'FOREIGN KEY fk_{}_dump(dump_id) REFERENCES {}(id)'.format(table_name, dump_table_name(table_name))
+        'FOREIGN KEY fk_{}_dump(dump_id) REFERENCES {}(id) ON DELETE CASCADE'.format(table_name, dump_table_name)
     ])
-    cols = ','.join([fields(field_names, pk), default_fields, pk_field])
-    return 'CREATE TABLE IF NOT EXISTS {} ({})'.format(table_name, cols)
+
+def create_table(table_name, field_names, pk, history=False):
+    pk_field = 'PRIMARY KEY({})'.format(pk.name) if pk else ''
+    name = '{}_history'.format(table_name) if history else table_name
+    dft_fields = default_fields(name, dump_table_name(table_name))
+    cols = ', '.join([fields(field_names, pk), dft_fields, pk_field])
+    sql = 'CREATE TABLE IF NOT EXISTS {} ({})'.format(name, cols)
+    print(sql)
+    return sql
+
+def create_table_history(table_name, field_names, pk):
+    return create_table(table_name, field_names, pk, history=True)
 
 def add_column(name, type=DEFAULT_FIELD_TYPE):
     return 'ADD COLUMN {} {}'.format(name, type)
@@ -36,3 +45,9 @@ def alter_table(table, latest_fields):
         new_cols = ',\n'.join([add_column(name) for name in new_names])
         return 'ALTER TABLE {}\n{};'.format(table.name, new_cols)
     return None
+
+def insert_record(table, values):
+    print(', '.join(['{}'.format(x) for x in values]))
+    values = ', '.join(["'{}'".format(x) for x in values])
+    field_names = ', '.join([col for col in table.fields.keys()])
+    return 'INSERT INTO {} ({})\nVALUES({})'.format(table.name, field_names, values)

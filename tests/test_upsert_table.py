@@ -44,39 +44,45 @@ def cur():
 #             yield row
 
 def test_create_table_with_primary_key(cur):
-    field_names=['simon','aaa','bbb']
+    field_names=['simon','aaa']
     cur.upsert_table('simon', field_names, pk_idx=0, pk_type='int')
     assert len(cur.table_names()) == 3
     assert cur.table_names()[0] == 'simon'
-    fields = cur.table_fields('simon')
-    assert fields['aaa'].name == 'aaa'
-    assert fields['aaa'].type == 'varchar(255)'
-    assert fields['aaa'].pk == False
-    assert fields['bbb'].name == 'bbb'
-    assert fields['bbb'].type == 'varchar(255)'
-    assert fields['bbb'].pk == False
-    assert fields['simon'].name == 'simon'
-    assert fields['simon'].type == 'int(11)'
-    assert fields['simon'].pk == True
+    fields = cur.table_fields('simon_dumps')
+    assert len(fields.keys()) == 3
+    assert fields['id'].type == 'int(11)'
+    assert fields['source'].type == 'varchar(255)'
+    assert fields['status'].type == "enum('started','completed','failed')"
+    for table in ['simon', 'simon_history']:
+        fields = cur.table_fields(table)
+        assert fields['simon'].name == 'simon'
+        assert fields['simon'].type == 'int(11)'
+        assert fields['simon'].pk == True
+        assert fields['aaa'].name == 'aaa'
+        assert fields['aaa'].type == 'varchar(255)'
+        assert fields['aaa'].pk == False
+        assert fields['dump_id'].name == 'dump_id'
+        assert fields['dump_id'].type == 'int(11)'
+        assert fields['dump_id'].pk == False
+        assert fields['line_id'].name == 'line_id'
+        assert fields['line_id'].type == 'int(11)'
+        assert fields['line_id'].pk == False
 
 def test_alter_table_with_new_cols(cur):
-    field_names=['simon','aaa','bbb']
+    field_names=['simon','aaa']
     cur.upsert_table('simon', field_names, pk_idx=0, pk_type='int')
     field_names=['simon', 'ccc', 'ddd']
     schema = cur.upsert_table('simon', field_names)
     fields = cur.table_fields('simon')
-    assert fields['ddd'].name == 'ddd'
-    assert fields['ddd'].type == 'varchar(255)'
-    assert fields['ddd'].pk == False
-    assert fields['ccc'].name == 'ccc'
-    assert fields['ccc'].type == 'varchar(255)'
-    assert fields['ccc'].pk == False
-    assert fields['aaa'].name == 'aaa'
-    assert fields['aaa'].type == 'varchar(255)'
-    assert fields['aaa'].pk == False
-    assert fields['bbb'].name == 'bbb'
-    assert fields['bbb'].type == 'varchar(255)'
-    assert fields['bbb'].pk == False
     assert fields['simon'].name == 'simon'
     assert fields['simon'].type == 'int(11)'
     assert fields['simon'].pk == True
+    assert fields['aaa'].name == 'aaa'
+    assert fields['aaa'].type == 'varchar(255)'
+    assert fields['aaa'].pk == False
+    assert fields['ccc'].name == 'ccc'
+    assert fields['ccc'].type == 'varchar(255)'
+    assert fields['ccc'].pk == False
+    assert fields['ddd'].name == 'ddd'
+    assert fields['ddd'].type == 'varchar(255)'
+    assert fields['ddd'].pk == False

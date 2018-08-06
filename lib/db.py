@@ -4,21 +4,7 @@ import mysql.connector
 from mysql.connector import pooling
 from contextlib import contextmanager
 from lib import ddl
-
-class Schema:
-    def __init__(self, tables):
-        self.tables = tables
-
-class Table:
-    def __init__(self, name, fields):
-        self.name = name
-        self.fields = fields
-
-class Field:
-    def __init__(self, name, type, pk=False):
-        self.name = name
-        self.type = type
-        self.pk = pk
+from lib import model
 
 class Cursor:
     def __init__(self, cur):
@@ -26,8 +12,8 @@ class Cursor:
         self.schema = self.latest_schema()
 
     def latest_schema(self):
-        tables = {name: Table(name, self.table_fields(name)) for name in self.table_names()}
-        return Schema(tables)
+        tables = {name: model.Table(name, self.table_fields(name)) for name in self.table_names()}
+        return model.Schema(tables)
 
     def table_count(self, table_name):
         return self.cur.execute('select count from {}'.format(table_name))
@@ -38,10 +24,16 @@ class Cursor:
 
     def table_fields(self, table_name):
         self.cur.execute('describe {}'.format(table_name))
-        return {x[0] : Field(x[0], x[1], x[3]=='PRI') for x in self.cur.fetchall()}
+        return {x[0] : model.Field(x[0], x[1], x[3]=='PRI') for x in self.cur.fetchall()}
+
+    def referenced_table_names(self, table_name):
+        self.cur.execute("select table_name from information_schema.KEY_COLUMN_USAGE where referenced_table_name = '{}'".format(table_name))
+        return  [x for (x,) in self.cur.fetchall()]
 
     def drop_tables(self):
         for name in self.table_names():
+            for ref_name in self.referenced_table_names(name):
+                self.cur.execute('drop table if exists {}'.format(ref_name))
             self.cur.execute('drop table if exists {}'.format(name))
 
     def upsert_table(self, table_name, field_names, pk_idx=None, pk_type=None):
@@ -49,10 +41,21 @@ class Cursor:
         if(existing_table):
             self.cur.execute(ddl.alter_table(existing_table, field_names))
         else:
-            pk = Field(field_names[pk_idx], pk_type) if pk_idx != None else None
+            pk = model.Field(field_names[pk_idx], pk_type) if pk_idx != None else None
             self.cur.execute(ddl.create_table_dumps(table_name))
             self.cur.execute(ddl.create_table(table_name, field_names, pk))
-            self.cur.execute(ddl.create_table('{}_history'.format(table_name), field_names, pk))
+            self.cur.execute(ddl.create_table_history(table_name, field_names, pk))
+
+    def upsert_record(self, table_name, values):
+        table = self.latest_schema().tables.get(table_name)
+        if(table):
+            sql = ddl.insert_record(table, values)
+            print(sql)
+            self.cur.execute(sql)
+
+    def rows(self, table_name):
+        self.cur.execute('select * from {}'.format(table_name))
+        return self.cur.fetchall()
 
     def execute(self, cmd):
         return self.cur.execute(cmd)
