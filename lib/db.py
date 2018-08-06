@@ -15,9 +15,10 @@ class Table:
         self.fields = fields
 
 class Field:
-    def __init__(self, name, type):
+    def __init__(self, name, type, pk=False):
         self.name = name
         self.type = type
+        self.pk = pk
 
 class Cursor:
     def __init__(self, cur):
@@ -37,17 +38,21 @@ class Cursor:
 
     def table_fields(self, table_name):
         self.cur.execute('describe {}'.format(table_name))
-        return {x[0] : Field(x[0], x[1]) for x in self.cur.fetchall()}
+        return {x[0] : Field(x[0], x[1], x[3]=='PRI') for x in self.cur.fetchall()}
 
     def drop_tables(self):
         for name in self.table_names():
             self.cur.execute('drop table if exists {}'.format(name))
 
     def upsert_table(self, table_name, field_names, pk_idx=None, pk_type=None):
-        pk = Field(field_names[pk_idx], pk_type) if pk_idx != None else None
-        sql = ddl.create_table(table_name, field_names, pk)
-        print(sql)
-        self.cur.execute(ddl)
+        existing_table = self.latest_schema().tables.get(table_name)
+        if(existing_table):
+            self.cur.execute(ddl.alter_table(existing_table, field_names))
+        else:
+            pk = Field(field_names[pk_idx], pk_type) if pk_idx != None else None
+            self.cur.execute(ddl.create_table_dumps(table_name))
+            self.cur.execute(ddl.create_table(table_name, field_names, pk))
+            self.cur.execute(ddl.create_table('{}_history'.format(table_name), field_names, pk))
 
     def execute(self, cmd):
         return self.cur.execute(cmd)
