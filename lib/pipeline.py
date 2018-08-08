@@ -14,7 +14,7 @@ def csv_entries(source):
             yield row
 
 
-def process(source, table_name, pk_idx, pk_type, cur):
+def process(cur, source, table_name, pk_idx, pk_type):
     entry = csv_entries(source)
     field_names = parser.parse_header(next(entry))
     dump_id = cur.upsert_table(source, table_name, field_names, pk_idx, pk_type)

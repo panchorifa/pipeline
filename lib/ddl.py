@@ -15,6 +15,9 @@ def get_dump(source, table):
     sql = "select * from {} where source='{}' and table_name='{}'"
     return sql.format(dump, source, table)
 
+def table_count(table_name):
+    return 'SELECT COUNT(*) FROM {}'.format(table_name)
+
 def create_table_dumps(table_name):
     fields = ('id INT not null auto_increment primary key, '
               'source VARCHAR(255) not null, '
