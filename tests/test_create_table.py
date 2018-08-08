@@ -7,8 +7,8 @@ from contextlib import contextmanager
 from lib import db
 
 source = 'source-a'
-field_names=['simon','aaa']
-table_name = 'simon'
+field_names=['nip','aaa']
+table_name = 'nip'
 
 dbconfig = {
     'host': 'mysql',
@@ -25,17 +25,9 @@ def cur():
             cur.drop_tables()
             yield cur
 
-# def csv_entries(source):
-#     with open(source, 'rt', encoding='UTF8') as csv_file:
-#         datareader = csv.reader(csv_file)
-#         yield next(datareader)  # yield the header
-#         for row in datareader:
-#             yield row
-
-
 def assert_table_dumps(cur):
-    assert cur.table_names()[0] == 'simon'
-    fields = cur.table_fields('simon_dumps')
+    assert cur.table_names()[0] == 'nip'
+    fields = cur.table_fields('nip_dumps')
     assert len(fields.keys()) == 6
     assert fields['id'].type == 'int(11)'
     assert fields['source'].type == 'varchar(255)'
@@ -44,29 +36,31 @@ def assert_table_dumps(cur):
     assert fields['created_at'].type == 'timestamp'
     assert fields['updated_at'].type == 'timestamp'
 
-def assert_table(cur, table_name):
+def assert_table(cur, table_name, archives=False):
     fields = cur.table_fields(table_name)
-    assert fields['simon'].name == 'simon'
-    assert fields['simon'].type == 'int(11)'
-    assert fields['simon'].pk == True
+    assert fields['nip'].name == 'nip'
+    assert fields['nip'].type == 'int(11)'
+    assert fields['nip'].pk == True
     assert fields['aaa'].name == 'aaa'
     assert fields['aaa'].type == 'varchar(255)'
     assert fields['aaa'].pk == False
     assert fields['dump_id'].name == 'dump_id'
     assert fields['dump_id'].type == 'int(11)'
-    assert fields['dump_id'].pk == False
+    assert fields['dump_id'].pk == (True if archives else False)
     assert fields['line'].name == 'line'
     assert fields['line'].type == 'int(11)'
-    assert fields['line'].pk == False
+    assert fields['line'].pk == (True if archives else False)
+    # assert fields['created_at'].type == 'timestamp'
+    # assert fields['updated_at'].type == 'timestamp'
 
 def test_create_table_with_primary_key(cur):
     cur.upsert_table(source, table_name, field_names, pk_idx=0, pk_type='int')
-    assert cur.table_names() == ['simon', 'simon_dumps', 'simon_archives']
+    assert cur.table_names() == ['nip', 'nip_archives', 'nip_dumps']
     assert_table_dumps(cur)
     assert_table(cur, table_name)
-    assert_table(cur, '{}_archives'.format(table_name))
+    assert_table(cur, '{}_archives'.format(table_name), True)
     assert cur.rows(table_name, field_names) == []
     assert cur.rows('{}_archives'.format(table_name), field_names) == []
     dumps = cur.rows('{}_dumps'.format(table_name), ['id', 'source', 'table_name'])
     assert len(dumps) == 1
-    assert dumps == [(1, 'source-a', 'simon')]
+    assert dumps == [(1, 'source-a', 'nip')]

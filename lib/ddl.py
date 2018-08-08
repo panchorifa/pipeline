@@ -12,9 +12,8 @@ def dump_table_name(name):
 
 def get_dump(source, table):
     dump = dump_table_name(table)
-    sql = "select * from {} where source='{}' and table_name='{}'".format(dump, source, table)
-    print(sql)
-    return sql
+    sql = "select * from {} where source='{}' and table_name='{}'"
+    return sql.format(dump, source, table)
 
 def create_table_dumps(table_name):
     fields = ('id INT not null auto_increment primary key, '
@@ -24,15 +23,12 @@ def create_table_dumps(table_name):
               'created_at TIMESTAMP NOT NULL DEFAULT NOW(), '
               'updated_at TIMESTAMP NOT NULL DEFAULT NOW() ON UPDATE now(), '
               'UNIQUE KEY(source, table_name)')
-    sql = 'CREATE TABLE {}({})'.format(dump_table_name(table_name), fields)
-    print(sql)
-    return sql
+    return 'CREATE TABLE {} ({})'.format(dump_table_name(table_name), fields)
 
 def start_dump(source, table_name):
     values = ', '.join(["'{}'".format(x) for x in [source, table_name, 'started']])
-    sql = 'INSERT INTO {}(source, table_name, status) values({})'.format(dump_table_name(table_name), values)
-    print(sql)
-    return sql
+    sql = 'INSERT INTO {}(source, table_name, status) values({})'
+    return sql.format(dump_table_name(table_name), values)
 
 def default_fields(table_name, dump_table_name):
     return ', '.join([
@@ -43,16 +39,21 @@ def default_fields(table_name, dump_table_name):
         'FOREIGN KEY fk_{}_dump(dump_id) REFERENCES {}(id) ON DELETE CASCADE'.format(table_name, dump_table_name)
     ])
 
-def create_table(table_name, field_names, pk):
-    pk_field = 'PRIMARY KEY({})'.format(pk.name) if pk else ''
+def create_table(table_name, field_names, pk, archives=False):
+    pk_name = pk and pk.name or 'id'
+    pk_field = None
+    if archives:
+        pk_field = 'PRIMARY KEY({}, dump_id, line)'.format(pk_name)
+    else:
+        pk_field = 'PRIMARY KEY({})'.format(pk_name)
+
     dft_fields = default_fields(table_name, dump_table_name(table_name))
     cols = ', '.join([fields(field_names, pk), dft_fields, pk_field])
-    sql = 'CREATE TABLE IF NOT EXISTS {} (id INT not null auto_increment primary key, {})'.format(table_name, cols)
-    print(sql)
-    return sql
+    name = '{}_archives'.format(table_name) if archives else table_name
+    return 'CREATE TABLE {} ({})'.format(name, cols)
 
 def create_table_archives(table_name, field_names, pk):
-    return 'CREATE TABLE {}_archives LIKE {}'.format(table_name, table_name)
+    return create_table(table_name, field_names, pk, True)
 
 def add_column(name, type=DEFAULT_FIELD_TYPE):
     return 'ADD COLUMN {} {}'.format(name, type)
@@ -64,17 +65,17 @@ def alter_table(table, latest_fields):
         return 'ALTER TABLE {}\n{};'.format(table.name, new_cols)
     return None
 
-def archive_record(table, id):
-    sql = 'insert into {name}_archives select * from {name} where {pk}={id}'
-    return sql.format(name=table.name, pk=table.pk.name, id=id)
+def archive_record(table, field_names, values, pk_idx):
+    sql = 'INSERT INTO {name}_archives SELECT * FROM {name} WHERE {pk}={id}'
+    return sql.format(name=table.name, pk=field_names[pk_idx], id=values[pk_idx])
 
 def insert_record(table_name, field_names, values, dump_id, line):
     field_names.extend(['dump_id', 'line'])
     values.extend([dump_id, line])
     values = ', '.join(["'{}'".format(x) for x in values])
     fields = ', '.join(field_names)
-    sql = 'INSERT INTO {} ({})\nVALUES({})'.format(table_name, fields, values)
-    print('========================')
-    print(sql)
-    print('========================')
-    return sql
+    return 'INSERT INTO {} ({})\nVALUES({})'.format(table_name, fields, values)
+
+def update_record(table_name, field_names, values, dump_id, line, pk_idx):
+    fields = ', '.join(["{}='{}'".format(name, values[idx]) for idx, name in enumerate(field_names) if idx!=pk_idx])
+    return 'UPDATE {} SET {} WHERE {}={}'.format(table_name, fields, field_names[pk_idx], values[pk_idx])
