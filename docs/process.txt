@@ -1,0 +1,5 @@
+1. should we fail when a single line fails?
+2. should we collect all lines that fail and process those later?
+
+1. Mention that each dump can be restarted after doing something with the
+affected line.

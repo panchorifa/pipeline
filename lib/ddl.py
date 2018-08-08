@@ -30,6 +30,12 @@ def start_dump(source, table_name):
     sql = 'INSERT INTO {}(source, table_name, status) values({})'
     return sql.format(dump_table_name(table_name), values)
 
+def complete_dump(table_name, dump_id):
+    return "UPDATE {}_dumps set status='{}' where id={}".format(table_name, 'completed', dump_id)
+
+def fail_dump(table_name, dump_id):
+    return "UPDATE {}_dumps set status='{}' where id={}".format(table_name, 'failed', dump_id)
+
 def default_fields(table_name, dump_table_name):
     return ', '.join([
         'dump_id int not null',
@@ -72,13 +78,6 @@ def archive_record(table, field_names, values, pk_idx):
 def insert_record(table_name, field_names, values, dump_id, line):
     names = field_names[:]
     names.extend(['dump_id', 'line'])
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print(names)
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     values.extend([dump_id, line])
     values = ', '.join(["'{}'".format(x) for x in values])
     fields = ', '.join(names)

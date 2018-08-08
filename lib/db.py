@@ -40,6 +40,12 @@ class Cursor:
                 self.execute('drop table if exists {}'.format(ref_name))
             self.execute('drop table if exists {}'.format(name))
 
+    def dump_completed(self, table_name, dump_id):
+        self.execute(ddl.complete_dump(table_name, dump_id))
+
+    def dump_failed(self, table_name, dump_id):
+        self.execute(ddl.fail_dump(table_name, dump_id))
+
     def upsert_table(self, source, table_name, field_names, pk_idx=None, pk_type=None):
         schema = self.latest_schema()
         existing_table = schema.tables.get(table_name)
@@ -77,26 +83,11 @@ class Cursor:
                     self.execute(ddl.archive_record(table, field_names, values, pk_idx))
                     self.execute(ddl.update_record(table_name, field_names, values, dump_id, line, pk_idx))
 
-    def rows(self, table_name, field_names):
+    def rows(self, table_name, field_names, where_statement=None):
         fields = ', '.join(field_names)
-        sql = 'SELECT {} FROM {}'.format(fields, table_name)
-        print(sql)
-        self.execute(sql)
-        # results = [row for (row,) in self.cur.fetchall()]
-        print(':::::::::::::::::::::::::::::::::::::')
-        print(':::::::::::::::::::::::::::::::::::::')
-        print(':::::::::::::::::::::::::::::::::::::')
-        # print(field_names)
-        print(results)
-        print(':::::::::::::::::::::::::::::::::::::')
-        print(':::::::::::::::::::::::::::::::::::::')
-        print(':::::::::::::::::::::::::::::::::::::')
-        # res = []
-        # for result in results:
-            # res.append({})
-        # res = {field_names[idx]: value for idx, value in enumerate(values)}
-        # print(res)
-        return results
+        where = ' {}'.format(where_statement) if where_statement else ''
+        self.execute('SELECT {} FROM {}{}'.format(fields, table_name, where))
+        return [value for value in self.cur.fetchall()]
 
     def execute(self, cmd):
         if debug:
