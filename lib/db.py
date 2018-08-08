@@ -6,6 +6,8 @@ from contextlib import contextmanager
 from lib import ddl
 from lib import model
 
+debug = False
+
 class Cursor:
     def __init__(self, cur):
         self.cur = cur
@@ -15,8 +17,10 @@ class Cursor:
         tables = {name: model.Table(name, self.table_fields(name)) for name in self.table_names()}
         return model.Schema(tables)
 
-    def table_count(self, table_name):
-        return self.execute('select count from {}'.format(table_name))
+    def count(self, table_name):
+        self.execute('SELECT COUNT(*) FROM {}'.format(table_name))
+        (rows, ) = self.cur.fetchone()
+        return rows
 
     def table_names(self):
         self.execute('show tables')
@@ -78,14 +82,27 @@ class Cursor:
         sql = 'SELECT {} FROM {}'.format(fields, table_name)
         print(sql)
         self.execute(sql)
-        x = [x for x in self.cur.fetchall()]
-        print(x)
-        return x
+        # results = [row for (row,) in self.cur.fetchall()]
+        print(':::::::::::::::::::::::::::::::::::::')
+        print(':::::::::::::::::::::::::::::::::::::')
+        print(':::::::::::::::::::::::::::::::::::::')
+        # print(field_names)
+        print(results)
+        print(':::::::::::::::::::::::::::::::::::::')
+        print(':::::::::::::::::::::::::::::::::::::')
+        print(':::::::::::::::::::::::::::::::::::::')
+        # res = []
+        # for result in results:
+            # res.append({})
+        # res = {field_names[idx]: value for idx, value in enumerate(values)}
+        # print(res)
+        return results
 
     def execute(self, cmd):
-        print('-------------------------------------------------------------')
-        print(cmd)
-        print('-------------------------------------------------------------')
+        if debug:
+            print('-------------------------------------------------------------')
+            print(cmd)
+            print('-------------------------------------------------------------')
         return self.cur.execute(cmd)
 
 class Db:

@@ -70,10 +70,18 @@ def archive_record(table, field_names, values, pk_idx):
     return sql.format(name=table.name, pk=field_names[pk_idx], id=values[pk_idx])
 
 def insert_record(table_name, field_names, values, dump_id, line):
-    field_names.extend(['dump_id', 'line'])
+    names = field_names[:]
+    names.extend(['dump_id', 'line'])
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print(names)
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     values.extend([dump_id, line])
     values = ', '.join(["'{}'".format(x) for x in values])
-    fields = ', '.join(field_names)
+    fields = ', '.join(names)
     return 'INSERT INTO {} ({})\nVALUES({})'.format(table_name, fields, values)
 
 def update_record(table_name, field_names, values, dump_id, line, pk_idx):
