@@ -1,33 +1,10 @@
-import csv
-import pytest
-import mysql.connector
-from mysql.connector import pooling
-from contextlib import contextmanager
-
-from lib import db
-
 source = 'source-a'
 field_names=['npi','aaa']
 table_name = 'npi'
 
-dbconfig = {
-    'host': 'mysql',
-    'user': 'root',
-    'password': 'password',
-    'database': 'external'
-}
-
-@pytest.fixture
-def cur():
-    x = db.Db(dbconfig)
-    with x.connection() as cnx:
-        with x.cursor(cnx) as cur:
-            cur.drop_tables()
-            yield cur
-
-def assert_table_dumps(cur):
-    assert cur.table_names()[0] == 'npi'
-    fields = cur.table_fields('npi_dumps')
+def assert_table_dumps(db):
+    assert db.table_names()[0] == 'npi'
+    fields = db.table_fields('npi_dumps')
     assert len(fields.keys()) == 6
     assert fields['id'].type == 'int(11)'
     assert fields['source'].type == 'varchar(255)'
@@ -36,8 +13,8 @@ def assert_table_dumps(cur):
     assert fields['created_at'].type == 'timestamp'
     assert fields['updated_at'].type == 'timestamp'
 
-def assert_table(cur, table_name, archives=False):
-    fields = cur.table_fields(table_name)
+def assert_table(db, table_name, archives=False):
+    fields = db.table_fields(table_name)
     assert fields['npi'].name == 'npi'
     assert fields['npi'].type == 'int(11)'
     assert fields['npi'].pk == True
@@ -50,17 +27,17 @@ def assert_table(cur, table_name, archives=False):
     assert fields['line'].name == 'line'
     assert fields['line'].type == 'int(11)'
     assert fields['line'].pk == (True if archives else False)
-    # assert fields['created_at'].type == 'timestamp'
-    # assert fields['updated_at'].type == 'timestamp'
+    assert fields['created_at'].type == 'timestamp'
+    assert fields['updated_at'].type == 'timestamp'
 
-def test_create_table_with_primary_key(cur):
-    cur.upsert_table(source, table_name, field_names, pk_idx=0, pk_type='int')
-    assert cur.table_names() == ['npi', 'npi_archives', 'npi_dumps']
-    assert_table_dumps(cur)
-    assert_table(cur, table_name)
-    assert_table(cur, '{}_archives'.format(table_name), True)
-    assert cur.count('npi') == 0
-    assert cur.count('npi_archives') == 0
-    dumps = cur.rows('{}_dumps'.format(table_name), ['id', 'source', 'table_name'])
+def test_create_table_with_primary_key(db):
+    db.upsert_table(source, table_name, field_names, pk_idx=0, pk_type='int')
+    assert db.table_names() == ['npi', 'npi_archives', 'npi_dumps']
+    assert_table_dumps(db)
+    assert_table(db, table_name)
+    assert_table(db, '{}_archives'.format(table_name), True)
+    assert db.count('npi') == 0
+    assert db.count('npi_archives') == 0
+    dumps = db.rows('{}_dumps'.format(table_name), ['id', 'source', 'table_name'])
     assert len(dumps) == 1
     assert dumps == [(1, 'source-a', 'npi')]
