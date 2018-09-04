@@ -56,7 +56,7 @@ settings.update(
     author_email='vimagox@gmail.com',
     packages=['tests'],
     scripts=['pipeline'],
-    url='https://gitlab.com/vimagox/pipeline',
+    url='https://gitlab.com/vimagox/python-engineer-data',
     license='MIT',
     description='Check your project requirements for Python version compatibility',
     long_description=open('README.rst').read(),

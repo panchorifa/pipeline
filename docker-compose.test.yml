@@ -1,0 +1,19 @@
+version: "3"
+services:
+  mysqltest:
+    image: "mysql:5.7"
+    environment:
+      MYSQL_ROOT_PASSWORD: "passwordtest"
+      MYSQL_DATABASE: "externaltest"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-ppassword", "--silent"]
+      interval: 5s
+  pipeline:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    volumes:
+      - ./lib:/usr/app/lib
+      - ./tests:/usr/app/tests
+    depends_on:
+      - mysqltest

@@ -1,21 +1,19 @@
 import pytest
-from lib import mysql
+from lib.dbs.mysql import api
 
-dbconfig = {
-    'host': 'mysql',
-    'user': 'root',
-    'password': 'password',
-    'database': 'external'
-}
+debug = False
 
 @pytest.fixture
-def cur():
-    with mysql.Db(dbconfig).connect() as cur:
-        cur.drop_tables()
-        yield cur
+def dbconfig():
+    return {
+        'host': 'mysqltest',
+        'user': 'root',
+        'password': 'passwordtest',
+        'database': 'externaltest'
+    }
 
 @pytest.fixture
-def db():
-    with mysql.Db(dbconfig).connect() as cur:
+def dbapi(dbconfig):
+    with api.Db(dbconfig).connect(debug) as cur:
         cur.drop_tables()
         yield cur

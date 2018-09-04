@@ -1,14 +1,31 @@
-from lib import parser, reader
+from lib import reader
+from lib.dbs.mysql import api
+from lib.model import Pk
 
-def process(db, source, table_name, pk_idx, pk_type):
-    entry = reader.csv_entries(source)
-    field_names = parser.parse_header(next(entry))
-    dump_id = db.upsert_table(source, table_name, field_names, pk_idx, pk_type)
+def process(source, table, dbapi, pk):
+    entries = reader.read(source, pk)
+    field_names = next(entries) # header
+    dump_id = dbapi.upsert_table(source, table, field_names, pk)
+    line=1
     try:
-        line=0
-        for values in entry:
+        for values in entries:
             line = line+1
-            db.upsert_record(table_name, field_names, values, dump_id, line, pk_idx)
-        db.dump_completed(table_name, dump_id)
-    except:
-        db.dump_failed(table_name, dump_id)
+            dbapi.upsert_record(dump_id, line, table, field_names, values, pk)
+        dbapi.dump_completed(table, dump_id)
+        print('Done. Processed {} lines.'.format(line))
+        return dump_id
+    except Exception as ex:
+        print("*********************************************")
+        print("*********************************************")
+        print("*********************************************")
+        print("Error Found.\nsource: {}\n line: {}".format(source, line))
+        print(ex)
+        print("*********************************************")
+        print("*********************************************")
+        print("*********************************************")
+        dbapi.dump_failed(table, dump_id)
+
+def process_cli(source, table, dbconfig, pk_idx=0, pk_type='int', debug=False):
+    pk = Pk(pk_idx, pk_type)
+    with api.Db(dbconfig).connect(debug) as dbapi:
+        process(source, table, dbapi, pk)

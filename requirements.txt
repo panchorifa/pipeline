@@ -1,2 +1,3 @@
 # Requirements for the package
 mysql-connector==2.1.6
+requests==2.19.1

@@ -13,24 +13,9 @@ services:
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-ppassword", "--silent"]
       interval: 5s
-  mysqltest:
-    image: "mysql:5.7"
-    environment:
-      MYSQL_ROOT_PASSWORD: "passwordtest"
-      MYSQL_DATABASE: "externaltest"
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-ppassword", "--silent"]
-      interval: 5s
-  tests:
-    build:
-      context: .
-      dockerfile: Dockerfile.test
     volumes:
-      - ./lib:/usr/app/lib
-      - ./tests:/usr/app/tests
-      - ./samples:/usr/app/samples
-    depends_on:
-      - mysqltest
-    # environment:
-    #   TEST_COUCH_URL: http://${COUCH_ADMIN}:${COUCH_PASS}@couch:5984
-    #   TEST_PG_URL: postgres://postgres:${PG_PASS}@postgres:5432
+      - pipeline-datavolume:/var/lib/mysql
+volumes:
+  pipeline-datavolume:
+    external:
+      name: external
